@@ -1,0 +1,52 @@
+name: Scala Glue Job CI - Build Only
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to the main branch
+
+env:
+  # Set a variable for the expected JAR file name for easy maintenance
+  EXPECTED_JAR_NAME: my-scala-glue-job-assembly-0.1.jar 
+  
+jobs:
+  build_job_jar: 
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read 
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Java and Scala
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11' 
+          cache: 'sbt'
+
+      - name: 📦 Build Scala Fat JAR (sbt assembly)
+        run: sbt assembly 
+
+      - name: ✅ Verify Fat JAR Exists
+        # The 'target' folder contains subfolders like 'scala-2.12', 'scala-2.13', etc.
+        # We use 'find' to search recursively.
+        run: |
+          echo "Looking for the Fat JAR in the 'target' directory..."
+          
+          # Find the JAR file and store its path in a variable
+          JAR_PATH=$(find target -name "${{ env.EXPECTED_JAR_NAME }}" | head -n 1)
+          
+          # Check if the variable is empty
+          if [ -z "$JAR_PATH" ]; then
+            echo "❌ ERROR: Fat JAR '${{ env.EXPECTED_JAR_NAME }}' not found!"
+            echo "Please check your build.sbt and plugins.sbt for 'sbt-assembly' configuration."
+            exit 1 # Fail the workflow job
+          else
+            echo "✅ SUCCESS! Found Fat JAR at: $JAR_PATH"
+            # Optional: Print the file size for confirmation
+            echo "File size:"
+            ls -lh "$JAR_PATH" 
+          fi
