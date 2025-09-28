@@ -1,1 +1,4 @@
+resolvers += Resolver.sonatypeRepo("releases")
+
+
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.1.2") // Use the latest version
