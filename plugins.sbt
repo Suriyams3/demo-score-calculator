@@ -1,0 +1,1 @@
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.20.0") // Use the latest version
